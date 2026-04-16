@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 맥미니에 AI 에이전트를 심는 법 — Keychain의 벽을 넘다</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css');
+
+  :root {
+    --bg: #fafaf9;
+    --text: #1c1917;
+    --accent: #292524;
+    --muted: #78716c;
+    --border: #e7e5e4;
+    --code-bg: #1e1e1e;
+    --code-text: #d4d4d4;
+    --highlight: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Pretendard Variable', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 80px 24px 120px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 64px;
+  }
+
+  .header .category {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--accent);
+    margin-bottom: 20px;
+    word-break: keep-all;
+  }
+
+  .header .subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    line-height: 1.6;
+    word-break: keep-all;
+  }
+
+  .header .meta {
+    margin-top: 24px;
+    font-size: 14px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .header .meta .dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .divider {
+    width: 48px;
+    height: 2px;
+    background: var(--accent);
+    margin: 48px 0;
+  }
+
+  /* Content */
+  .content h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 56px 0 20px;
+    color: var(--accent);
+    word-break: keep-all;
+  }
+
+  .content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 40px 0 16px;
+    color: var(--accent);
+  }
+
+  .content p {
+    font-size: 16.5px;
+    margin-bottom: 24px;
+    color: var(--text);
+    word-break: keep-all;
+  }
+
+  .content p.small {
+    font-size: 14.5px;
+    color: var(--muted);
+  }
+
+  .content strong {
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .content em {
+    font-style: normal;
+    background: linear-gradient(transparent 60%, #fde68a 60%);
+    padding: 0 2px;
+  }
+
+  /* Pull quote */
+  .pullquote {
+    margin: 48px 0;
+    padding: 32px 0 32px 28px;
+    border-left: 3px solid var(--accent);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--accent);
+    word-break: keep-all;
+  }
+
+  /* Code block */
+  .code-block {
+    background: var(--code-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0 32px;
+    overflow-x: auto;
+  }
+
+  .code-block code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+  }
+
+  .code-block .comment { color: #6a9955; }
+  .code-block .command { color: #dcdcaa; }
+  .code-block .string { color: #ce9178; }
+  .code-block .flag { color: #569cd6; }
+  .code-block .success { color: #4ec9b0; }
+
+  /* Comparison table */
+  .comparison {
+    margin: 32px 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .comparison table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+
+  .comparison th {
+    background: #f5f5f4;
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comparison td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    word-break: keep-all;
+  }
+
+  .comparison tr:last-child td { border-bottom: none; }
+
+  .comparison .fail { color: #dc2626; font-weight: 600; }
+  .comparison .pass { color: #16a34a; font-weight: 600; }
+
+  /* Timeline */
+  .timeline {
+    margin: 32px 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .timeline li {
+    position: relative;
+    padding: 0 0 32px 36px;
+    font-size: 15.5px;
+  }
+
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--border);
+    border: 2px solid var(--bg);
+  }
+
+  .timeline li::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 20px;
+    width: 2px;
+    height: calc(100% - 12px);
+    background: var(--border);
+  }
+
+  .timeline li:last-child::after { display: none; }
+  .timeline li.active::before { background: var(--accent); }
+  .timeline li.success::before { background: #16a34a; }
+
+  .timeline .label {
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .timeline .desc {
+    color: var(--muted);
+    font-size: 14.5px;
+  }
+
+  /* Insight box */
+  .insight {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 32px 0;
+  }
+
+  .insight .tag {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #b45309;
+    margin-bottom: 8px;
+  }
+
+  .insight p {
+    font-size: 15px;
+    margin-bottom: 0;
+    color: #78350f;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .footer a:hover { border-color: var(--accent); }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .container { padding: 48px 20px 80px; }
+    .header h1 { font-size: 26px; }
+    .pullquote { font-size: 18px; padding-left: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="category">AI Agent / DevOps</div>
+    <h1>내 맥미니에 AI 에이전트를 심는 법<br>— Keychain의 벽을 넘다</h1>
+    <p class="subtitle">Claude Max 구독 재활용은 실패했다. 그런데 Codex OAuth라는 우회로가 있었다.</p>
+    <div class="meta">
+      <span>최병찬</span>
+      <span class="dot"></span>
+      <span>2026.04.16</span>
+      <span class="dot"></span>
+      <span>10분</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="content">
+
+    <p>200달러짜리 Claude Max 구독을 하고 있다. 매달 200달러. 적은 돈이 아니다.</p>
+
+    <p>그래서 생각했다. 집에 맥미니가 24시간 돌아가고 있으니까, 여기에 AI 에이전트를 하나 심어두면 어떨까. 내가 자는 동안에도 일하고, 폰에서 메시지 하나 보내면 응답하는, <em>나만의 AI 비서</em>.</p>
+
+    <p>Hermes Agent라는 오픈소스 프로젝트가 딱 그 역할을 한다. NousResearch에서 만든, 로컬에서 돌아가는 AI 에이전트. 텔레그램이나 디스코드로 원격 제어도 된다.</p>
+
+    <p>문제는 하나였다. <strong>인증</strong>.</p>
+
+    <h2>Keychain이라는 벽</h2>
+
+    <p>macOS의 Claude Code는 인증 정보를 Keychain에만 저장한다. 파일로 안 남긴다. 심지어 <code>~/.claude/.credentials.json</code> 파일이 만들어져도, 시작할 때마다 삭제한다.</p>
+
+    <p>Hermes Agent는 그 파일을 읽어야 작동한다.</p>
+
+    <p>파일은 없고, 읽으려는 놈은 있고. 구조적으로 안 맞는 거다.</p>
+
+    <div class="pullquote">
+      Anthropic에 이슈를 올렸더니 "not planned"으로 닫았다. 고칠 생각이 없다는 뜻이다.
+    </div>
+
+    <p>4월 14일, 7가지 방법을 시도했다. 전부 실패.</p>
+
+    <ul class="timeline">
+      <li class="active">
+        <span class="label">시도 1: OAuth 토큰 직접 발급</span>
+        <span class="desc">sk-ant-oat01... 토큰을 받았지만 Anthropic API가 "Invalid bearer token" 401</span>
+      </li>
+      <li class="active">
+        <span class="label">시도 2-3: .env에 환경변수 설정</span>
+        <span class="desc">ANTHROPIC_TOKEN, ANTHROPIC_API_KEY 둘 다 같은 401</span>
+      </li>
+      <li class="active">
+        <span class="label">시도 4: Hermes 자동 감지 기대</span>
+        <span class="desc">env를 비우면 자동으로 찾는다고 했지만, Mac에선 파일 자체가 없어서 실패</span>
+      </li>
+      <li class="active">
+        <span class="label">시도 5: Keychain에서 추출</span>
+        <span class="desc">security find-generic-password → SSH에서 errSecInteractionNotAllowed (exit 36)</span>
+      </li>
+      <li class="active">
+        <span class="label">시도 6-7: Claude Code 업데이트, 캐시 제거</span>
+        <span class="desc">OAuth client_id 버그 해결됐지만, 근본 문제는 keychain</span>
+      </li>
+    </ul>
+
+    <p>7번의 시도 끝에 내린 결론: <strong>macOS에서 Claude Max 구독으로 Hermes를 돌리는 건 구조적으로 불가능하다.</strong></p>
+
+    <p>여기서 보통은 포기한다.</p>
+
+    <h2>질문을 바꾸다</h2>
+
+    <p>4월 16일, 다시 이 문제를 꺼냈다. 이번에는 질문을 바꿨다.</p>
+
+    <p class="small">"Claude 인증을 어떻게 뚫을까"가 아니라,</p>
+
+    <div class="pullquote">
+      "파일로 토큰을 저장하는 다른 AI 서비스는 없을까?"
+    </div>
+
+    <p>있었다. <strong>OpenAI Codex CLI</strong>.</p>
+
+    <p>Codex CLI는 <code>codex login</code>을 하면 ChatGPT 계정으로 OAuth 인증을 하고, 그 토큰을 <code>~/.codex/auth.json</code>이라는 <em>평범한 JSON 파일</em>에 저장한다. Keychain이 아니라 파일.</p>
+
+    <div class="comparison">
+      <table>
+        <tr>
+          <th></th>
+          <th>Claude Code (macOS)</th>
+          <th>OpenAI Codex CLI</th>
+        </tr>
+        <tr>
+          <td><strong>토큰 저장</strong></td>
+          <td class="fail">Keychain only (파일 삭제)</td>
+          <td class="pass">~/.codex/auth.json (파일)</td>
+        </tr>
+        <tr>
+          <td><strong>다른 앱이 읽기</strong></td>
+          <td class="fail">불가능</td>
+          <td class="pass">가능 (plain JSON)</td>
+        </tr>
+        <tr>
+          <td><strong>Hermes 연동</strong></td>
+          <td class="fail">구조적 불가</td>
+          <td class="pass">openai-codex provider 공식 지원</td>
+        </tr>
+        <tr>
+          <td><strong>비용</strong></td>
+          <td>Claude Max $200/월</td>
+          <td>ChatGPT Pro 구독 포함</td>
+        </tr>
+      </table>
+    </div>
+
+    <p>그리고 결정적으로, Hermes Agent의 config.yaml을 열어보니 이미 거기 있었다.</p>
+
+    <div class="code-block"><code><span class="comment"># config.yaml의 provider 목록 중</span>
+<span class="string">"openai-codex"</span> - OpenAI Codex
+  (requires: hermes login --provider openai-codex)</code></div>
+
+    <p>Hermes가 <em>공식적으로</em> Codex OAuth를 지원하고 있었다. 게다가 소스 코드를 뜯어보니 <code>_import_codex_cli_tokens()</code>라는 함수가 <code>~/.codex/auth.json</code>을 직접 읽는다.</p>
+
+    <p>퍼즐 조각이 맞춰졌다.</p>
+
+    <h2>5단계 연결</h2>
+
+    <p>남은 건 실행이었다. 생각보다 단순했다.</p>
+
+    <ul class="timeline">
+      <li class="success">
+        <span class="label">1. 맥북에서 codex login</span>
+        <span class="desc">브라우저가 열리고, ChatGPT 계정으로 OAuth 인증. "Successfully logged in"</span>
+      </li>
+      <li class="success">
+        <span class="label">2. 토큰 파일 복사</span>
+        <span class="desc">scp ~/.codex/auth.json 맥미니:~/.codex/auth.json — 1초</span>
+      </li>
+      <li class="success">
+        <span class="label">3. Hermes config 수정</span>
+        <span class="desc">provider: "openai-codex", model: "gpt-5.4"</span>
+      </li>
+      <li class="success">
+        <span class="label">4. 테스트</span>
+        <span class="desc">hermes chat -q "say hello" --provider openai-codex → "Hello!"</span>
+      </li>
+      <li class="success">
+        <span class="label">5. 확인</span>
+        <span class="desc">API 과금 없음. ChatGPT Pro 구독 재활용 확인</span>
+      </li>
+    </ul>
+
+    <div class="code-block"><code><span class="comment"># 맥미니에서 실행한 최종 명령어</span>
+$ hermes chat -q <span class="string">"say hello in one sentence"</span> \
+    <span class="flag">--provider</span> openai-codex \
+    <span class="flag">--model</span> gpt-5.4 -Q
+
+<span class="success">╭─ ⚕ Hermes ─────────────────────╮
+Hello!
+session_id: 20260416_142239_2e679f</span></code></div>
+
+    <p>4월 14일에 7번 실패했던 것이, 질문을 바꾸고 나니 5단계 만에 끝났다.</p>
+
+    <h2>왜 이게 의미 있는가</h2>
+
+    <p>표면적으로 보면 "AI 서비스 바꿔서 연결했네" 정도의 이야기다. 하지만 좀 더 들여다보면 구조적인 발견이 있다.</p>
+
+    <div class="insight">
+      <div class="tag">Insight</div>
+      <p><strong>AI 구독 서비스의 인증 방식이 곧 확장성을 결정한다.</strong> Claude가 Keychain에 가둔 순간, 생태계 확장이 막혔다. Codex가 파일에 열어둔 순간, 서드파티 연동이 가능해졌다. 기술적 결정 하나가 사용자의 가능성을 열거나 닫는다.</p>
+    </div>
+
+    <p>또 하나. 이 맥미니에서 돌아가는 Hermes는 이제 <em>내 에이전트</em>다.</p>
+
+    <p>클라우드에 있는 ChatGPT나 Claude가 아니다. 내 책상 위 맥미니에 물리적으로 존재하고, 내 파일에 접근하고, 내가 만든 스킬을 실행하고, 텔레그램으로 원격 제어할 수 있는 에이전트.</p>
+
+    <p>매달 내는 구독료가 이 에이전트의 두뇌를 유지하는 비용이다. 추가 과금 없이.</p>
+
+    <h2>재현 가이드</h2>
+
+    <h3>준비물</h3>
+    <p>ChatGPT Pro 또는 Plus 구독, macOS 맥미니 (또는 아무 Mac), Hermes Agent 설치, OpenAI Codex CLI 설치</p>
+
+    <h3>설치</h3>
+
+    <div class="code-block"><code><span class="comment"># 1. Codex CLI 설치 (맥미니 + 맥북 둘 다)</span>
+$ npm install -g @openai/codex
+
+<span class="comment"># 2. 맥북에서 로그인 (브라우저 필요 — 1회만)</span>
+$ codex login
+<span class="success">Successfully logged in</span>
+
+<span class="comment"># 3. 토큰을 맥미니로 복사</span>
+$ scp ~/.codex/auth.json 맥미니:~/.codex/auth.json
+
+<span class="comment"># 4. 맥미니 Hermes config.yaml 수정</span>
+model:
+  default: <span class="string">"gpt-5.4"</span>
+  provider: <span class="string">"openai-codex"</span>
+
+<span class="comment"># 5. 테스트</span>
+$ hermes chat -q <span class="string">"hello"</span> --provider openai-codex
+</code></div>
+
+    <h3>토큰 갱신</h3>
+    <p>access_token은 약 10일마다 만료된다. Hermes가 refresh_token으로 자동 갱신을 시도하지만, 실패하면 맥북에서 <code>codex login</code> 후 다시 scp하면 된다.</p>
+
+    <div class="divider"></div>
+
+    <p>7번의 실패와 하나의 질문 전환. "어떻게 뚫을까"에서 "다른 길은 없을까"로.</p>
+
+    <p>결국 문제를 푼 건 기술력이 아니라 <em>관점의 전환</em>이었다. Claude의 벽을 넘으려고 할 게 아니라, 벽이 없는 다른 서비스를 찾으면 되는 거였다.</p>
+
+    <p>지금 이 순간에도 내 맥미니 위에서, gpt-5.4가 돌아가는 Hermes가 조용히 대기하고 있다.</p>
+
+  </div>
+
+  <div class="footer">
+    <p>
+      이 글은 Claude Code (Opus 4.6) + Hermes Agent (gpt-5.4) 조합으로 작성되었습니다.
+      <br>
+      <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> &middot;
+      <a href="https://github.com/openai/codex">OpenAI Codex CLI</a>
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>
